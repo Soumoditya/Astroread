@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vedic Astrology PDF Generator</title>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="controls">
+    <h2>Vedic Astrology Reading</h2>
+    <textarea id="readingText" placeholder="Paste full astrological reading here..."></textarea>
+    <button onclick="generatePDF()">Generate PDF</button>
+  </div>
+
+  <!-- PDF AREA -->
+  <div id="pdfPage">
+    <img src="background.jpg" class="bg" />
+    <div id="content"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
