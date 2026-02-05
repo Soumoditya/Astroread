@@ -1,75 +1,72 @@
-function drawBackground(pdf, img, pageWidth, pageHeight) {
-  const imgWidth = img.width;
-  const imgHeight = img.height;
-
-  const imgRatio = imgWidth / imgHeight;
-  const pageRatio = pageWidth / pageHeight;
-
-  let drawWidth, drawHeight;
-
-  if (imgRatio > pageRatio) {
-    // Image is wider than page
-    drawWidth = pageWidth;
-    drawHeight = pageWidth / imgRatio;
-  } else {
-    // Image is taller than page
-    drawHeight = pageHeight;
-    drawWidth = pageHeight * imgRatio;
-  }
-
-  const x = (pageWidth - drawWidth) / 2;
-  const y = (pageHeight - drawHeight) / 2;
-
-  pdf.addImage(img, "PNG", x, y, drawWidth, drawHeight);
-}
 const { jsPDF } = window.jspdf;
 
 function generatePDF() {
-  const text = document.getElementById("textInput").value;
+  const text = document.getElementById("textInput").value.trim();
+  if (!text) {
+    alert("Please paste the reading text.");
+    return;
+  }
+
   const pdf = new jsPDF("p", "pt", "a4");
 
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
 
-  // SAFE AREA (your white-marked zone)
-  const marginTop = 130;
-  const marginBottom = 150;
-  const marginLeft = 90;
-  const marginRight = 90;
+  // ===== SAFE AREA (inside inner frame, mandala allowed) =====
+  const marginTop = 120;
+  const marginBottom = 90;   // allow mandala overlap
+  const marginLeft = 105;
+  const marginRight = 105;
 
   const usableWidth = pageWidth - marginLeft - marginRight;
   const usableHeight = pageHeight - marginTop - marginBottom;
 
-  // Text style
+  // ===== TEXT STYLE =====
   pdf.setFont("Times", "Normal");
   pdf.setFontSize(15);
-  pdf.setTextColor(55, 45, 30);
+  pdf.setTextColor(60, 50, 34); // parchment-friendly brown
+  const lineHeight = 19;
 
-  const lines = pdf.splitTextToSize(text, usableWidth);
-  let cursorY = marginTop;
-
-  // LOAD BACKGROUND IMAGE PROPERLY
+  // ===== LOAD BACKGROUND =====
   const bgImg = new Image();
   bgImg.src = "background.png";
 
   bgImg.onload = () => {
-  drawBackground(pdf, bgImg, pageWidth, pageHeight);
+    const imgRatio = bgImg.width / bgImg.height;
 
-  lines.forEach((line) => {
-    if (cursorY + 18 > marginTop + usableHeight) {
-      pdf.addPage();
-      drawBackground(pdf, bgImg, pageWidth, pageHeight);
-      cursorY = marginTop;
-    }
+    // FILL HEIGHT (9:16 image)
+    const drawHeight = pageHeight;
+    const drawWidth = drawHeight * imgRatio;
 
-    pdf.text(line, marginLeft, cursorY, { align: "justify" });
-    cursorY += 18;
-  });
+    // Crop equally from left/right
+    const x = (pageWidth - drawWidth) / 2;
+    const y = 0;
 
-  pdf.save("Astrological_Reading.pdf");
-};
+    const lines = pdf.splitTextToSize(text, usableWidth);
+    let cursorY = marginTop;
+
+    // First page
+    pdf.addImage(bgImg, "PNG", x, y, drawWidth, drawHeight);
+
+    lines.forEach(line => {
+      if (cursorY + lineHeight > marginTop + usableHeight) {
+        pdf.addPage();
+        pdf.addImage(bgImg, "PNG", x, y, drawWidth, drawHeight);
+        cursorY = marginTop;
+      }
+
+      pdf.text(line, marginLeft, cursorY, {
+        maxWidth: usableWidth,
+        align: "justify"
+      });
+
+      cursorY += lineHeight;
+    });
+
+    pdf.save("Astrological_Reading.pdf");
+  };
 
   bgImg.onerror = () => {
-    alert("Background image not found. Check filename & path.");
+    alert("background.png not found. Check filename and path.");
   };
 }
