@@ -1,3 +1,27 @@
+function drawBackground(pdf, img, pageWidth, pageHeight) {
+  const imgWidth = img.width;
+  const imgHeight = img.height;
+
+  const imgRatio = imgWidth / imgHeight;
+  const pageRatio = pageWidth / pageHeight;
+
+  let drawWidth, drawHeight;
+
+  if (imgRatio > pageRatio) {
+    // Image is wider than page
+    drawWidth = pageWidth;
+    drawHeight = pageWidth / imgRatio;
+  } else {
+    // Image is taller than page
+    drawHeight = pageHeight;
+    drawWidth = pageHeight * imgRatio;
+  }
+
+  const x = (pageWidth - drawWidth) / 2;
+  const y = (pageHeight - drawHeight) / 2;
+
+  pdf.addImage(img, "PNG", x, y, drawWidth, drawHeight);
+}
 const { jsPDF } = window.jspdf;
 
 function generatePDF() {
@@ -29,21 +53,21 @@ function generatePDF() {
   bgImg.src = "background.png";
 
   bgImg.onload = () => {
-    pdf.addImage(bgImg, "PNG", 0, 0, pageWidth, pageHeight);
+  drawBackground(pdf, bgImg, pageWidth, pageHeight);
 
-    lines.forEach((line) => {
-      if (cursorY + 18 > marginTop + usableHeight) {
-        pdf.addPage();
-        pdf.addImage(bgImg, "PNG", 0, 0, pageWidth, pageHeight);
-        cursorY = marginTop;
-      }
+  lines.forEach((line) => {
+    if (cursorY + 18 > marginTop + usableHeight) {
+      pdf.addPage();
+      drawBackground(pdf, bgImg, pageWidth, pageHeight);
+      cursorY = marginTop;
+    }
 
-      pdf.text(line, marginLeft, cursorY, { align: "justify" });
-      cursorY += 18;
-    });
+    pdf.text(line, marginLeft, cursorY, { align: "justify" });
+    cursorY += 18;
+  });
 
-    pdf.save("Astrological_Reading.pdf");
-  };
+  pdf.save("Astrological_Reading.pdf");
+};
 
   bgImg.onerror = () => {
     alert("Background image not found. Check filename & path.");
