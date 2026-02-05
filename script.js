@@ -2,14 +2,12 @@ const { jsPDF } = window.jspdf;
 
 function generatePDF() {
   const text = document.getElementById("textInput").value;
-
   const pdf = new jsPDF("p", "pt", "a4");
 
-  // Page size
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
 
-  // SAFE AREA based on your white marking
+  // SAFE AREA (your white-marked zone)
   const marginTop = 130;
   const marginBottom = 150;
   const marginLeft = 90;
@@ -18,31 +16,36 @@ function generatePDF() {
   const usableWidth = pageWidth - marginLeft - marginRight;
   const usableHeight = pageHeight - marginTop - marginBottom;
 
-  // Background
-  const bgPath = "background.jpg";
-
-  // Text styling (vedic friendly)
+  // Text style
   pdf.setFont("Times", "Normal");
   pdf.setFontSize(15);
-  pdf.setTextColor(55, 45, 30); // soft brown-gold readable tone
+  pdf.setTextColor(55, 45, 30);
 
-  // Split text into lines
   const lines = pdf.splitTextToSize(text, usableWidth);
   let cursorY = marginTop;
 
-  // Draw background on first page
-  pdf.addImage(bgPath, "JPEG", 0, 0, pageWidth, pageHeight);
+  // LOAD BACKGROUND IMAGE PROPERLY
+  const bgImg = new Image();
+  bgImg.src = "background.png";
 
-  lines.forEach((line) => {
-    if (cursorY + 18 > marginTop + usableHeight) {
-      pdf.addPage();
-      pdf.addImage(bgPath, "JPEG", 0, 0, pageWidth, pageHeight);
-      cursorY = marginTop;
-    }
+  bgImg.onload = () => {
+    pdf.addImage(bgImg, "PNG", 0, 0, pageWidth, pageHeight);
 
-    pdf.text(line, marginLeft, cursorY, { align: "justify" });
-    cursorY += 18;
-  });
+    lines.forEach((line) => {
+      if (cursorY + 18 > marginTop + usableHeight) {
+        pdf.addPage();
+        pdf.addImage(bgImg, "PNG", 0, 0, pageWidth, pageHeight);
+        cursorY = marginTop;
+      }
 
-  pdf.save("Astrological_Reading.pdf");
+      pdf.text(line, marginLeft, cursorY, { align: "justify" });
+      cursorY += 18;
+    });
+
+    pdf.save("Astrological_Reading.pdf");
+  };
+
+  bgImg.onerror = () => {
+    alert("Background image not found. Check filename & path.");
+  };
 }
